@@ -17,14 +17,14 @@ type Room struct {
 	Name    string
 	IsEmpty bool
 	Visited bool
-	Links   []string
+	Links   []*Room
 }
 
 var Rooms []Room
 
 var Path []Room
 
-var Paths [][]Room
+var Paths [][]*Room
 
 var startRoom Room
 
@@ -48,9 +48,19 @@ func main() {
 	// fmt.Println(Ants)
 	// fmt.Println(Rooms[0])
 
-	for _, room := range Rooms {
-		PrintRoom(room)
+	// for _, room := range Rooms {
+	// 	PrintRoom(room)
+	// }
+
+	// PrintRoom(startRoom)
+	// PrintRoom(endRoom)
+
+	FindAllPaths(&startRoom, &endRoom)
+
+	for _, path := range Paths {
+		PrintPath(path)
 	}
+
 }
 
 func PrintRoom(room Room) {
@@ -59,5 +69,12 @@ func PrintRoom(room Room) {
 	fmt.Printf("Links: %v\n", room.Links)
 	fmt.Printf("Visited: %v\n", room.Visited)
 	fmt.Printf("IsEmpty: %v\n", room.IsEmpty)
+	fmt.Println()
+}
+
+func PrintPath(Path []*Room) {
+	for _, room := range Path {
+		fmt.Print(room.Name, " -> ")
+	}
 	fmt.Println()
 }

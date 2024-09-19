@@ -73,8 +73,8 @@ func DecodeFile(fileContent string) {
 			links := strings.Split(line, "-")
 			room1 := FindRoomByName(links[0])
 			room2 := FindRoomByName(links[1])
-			room1.Links = append(room1.Links, links[1])
-			room2.Links = append(room2.Links, links[0])
+			room1.Links = append(room1.Links, room2)
+			room2.Links = append(room2.Links, room1)
 		}
 
 	}

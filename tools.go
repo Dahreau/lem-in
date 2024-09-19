@@ -30,8 +30,10 @@ func IsFileValid() bool {
 		return false
 	}
 	if endRoom.Name != Rooms[len(Rooms)-1].Name {
-		fmt.Println("End room is the first room in the file.")
+		fmt.Println("End room is not the last room in the file.")
 		return false
 	}
+	startRoom = Rooms[0]
+	endRoom = Rooms[len(Rooms)-1]
 	return true
 }
