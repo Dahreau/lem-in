@@ -26,9 +26,11 @@ var Path []Room
 
 var Paths [][]*Room
 
-var startRoom Room
+var AntCount int
 
-var endRoom Room
+var startRoom *Room
+
+var endRoom *Room
 
 func main() {
 
@@ -52,12 +54,9 @@ func main() {
 	// 	PrintRoom(room)
 	// }
 
-	// PrintRoom(startRoom)
-	// PrintRoom(endRoom)
-
-	FindAllPaths(&startRoom, &endRoom)
-
-	for _, path := range Paths {
+	FindAllPaths(startRoom, endRoom)
+	bestPaths := FindBestPaths(Paths, AntCount)
+	for _, path := range bestPaths {
 		PrintPath(path)
 	}
 

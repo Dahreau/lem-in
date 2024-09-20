@@ -23,17 +23,5 @@ func IsFileValid() bool {
 		}
 		seen[room.Name] = true
 	}
-
-	// Verifies that Start Room and End Room are respectively the first and last given rooms in the file
-	if startRoom.Name != Rooms[0].Name {
-		fmt.Println("Start room is not the first room in the file.")
-		return false
-	}
-	if endRoom.Name != Rooms[len(Rooms)-1].Name {
-		fmt.Println("End room is not the last room in the file.")
-		return false
-	}
-	startRoom = Rooms[0]
-	endRoom = Rooms[len(Rooms)-1]
 	return true
 }

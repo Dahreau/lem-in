@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 func FindAllPaths(start *Room, end *Room) {
 	// File pour stocker les chemins partiels
@@ -16,12 +19,11 @@ func FindAllPaths(start *Room, end *Room) {
 		// Dernière salle du chemin
 		lastRoom := path[len(path)-1]
 
-		PrintRoom(*lastRoom)
-		fmt.Println("queue :", queue)
+		// PrintRoom(*lastRoom)
+		// fmt.Println("queue :", queue)
 
 		// Si on atteint la salle de fin, on ajoute ce chemin
 		if lastRoom.Name == end.Name {
-			fmt.Println("lalalaalaa")
 			Paths = append(Paths, path)
 			continue
 		}
@@ -36,7 +38,10 @@ func FindAllPaths(start *Room, end *Room) {
 			}
 		}
 	}
-
+	if len(Paths) == 0 {
+		fmt.Println("Invalid data format")
+		os.Exit(0)
+	}
 }
 
 // Fonction pour vérifier si une salle a déjà été visitée dans un chemin
@@ -47,4 +52,60 @@ func isVisited(room *Room, path []*Room) bool {
 		}
 	}
 	return false
+}
+
+// I would like a function that returns the best paths (the shortest ones) but the maximum disjoints paths in the list of paths depending on the number of ants that will be sent.
+func FindBestPaths(paths [][]*Room, numAnts int) [][]*Room {
+	BestPaths := [][]*Room{{}}
+	for i := 0; i < len(paths); i++ {
+		disjointPaths := [][]*Room{{}}
+		for j, room := range paths[i] {
+			if j != 0 && j != len(paths[i])-1 {
+				room.Visited = true
+			}
+		}
+		disjointPaths = append(disjointPaths, paths[i])
+		for j := 0; j < len(paths); j++ {
+			if j != i {
+				disjoint := true
+				for k, room := range paths[j] {
+					if i == 4 && j == 3 {
+					}
+					if k != 0 && k != len(paths[j])-1 && room.Visited {
+						disjoint = false
+					}
+				}
+				if disjoint {
+					disjointPaths = append(disjointPaths, paths[j])
+					for _, room := range paths[j] {
+						room.Visited = true
+					}
+				}
+			}
+		}
+		for _, path := range disjointPaths {
+			for _, room := range path {
+				room.Visited = false
+			}
+		}
+		if len(disjointPaths) > len(BestPaths) {
+			BestPaths = disjointPaths
+		}
+	}
+	if numAnts == 1 {
+		BestPaths = [][]*Room{FindShortestPath()}
+	}
+	return BestPaths
+}
+
+// I would like a function that returns the shortest path in the list of paths.
+func FindShortestPath() []*Room {
+	ShortestPath := Paths[0]
+	for i := 0; i < len(Paths); i++ {
+		if len(Paths[i]) < len(ShortestPath) {
+			PrintPath(Paths[i])
+			ShortestPath = Paths[i]
+		}
+	}
+	return ShortestPath
 }
