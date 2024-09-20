@@ -56,45 +56,63 @@ func isVisited(room *Room, path []*Room) bool {
 
 // I would like a function that returns the best paths (the shortest ones) but the maximum disjoints paths in the list of paths depending on the number of ants that will be sent.
 func FindBestPaths(paths [][]*Room, numAnts int) [][]*Room {
-	BestPaths := [][]*Room{{}}
+	BestPaths := [][]*Room{}
+	bestScore := float64(^uint(0) >> 1) // Initialize to max float value
+
 	for i := 0; i < len(paths); i++ {
-		disjointPaths := [][]*Room{{}}
+		disjointPaths := [][]*Room{paths[i]}
 		for j, room := range paths[i] {
 			if j != 0 && j != len(paths[i])-1 {
 				room.Visited = true
 			}
 		}
-		disjointPaths = append(disjointPaths, paths[i])
+
 		for j := 0; j < len(paths); j++ {
 			if j != i {
 				disjoint := true
 				for k, room := range paths[j] {
-					if i == 4 && j == 3 {
-					}
 					if k != 0 && k != len(paths[j])-1 && room.Visited {
 						disjoint = false
+						break
 					}
 				}
 				if disjoint {
 					disjointPaths = append(disjointPaths, paths[j])
 					for _, room := range paths[j] {
-						room.Visited = true
+						if room != paths[j][0] && room != paths[j][len(paths[j])-1] {
+							room.Visited = true
+						}
 					}
 				}
 			}
 		}
+
 		for _, path := range disjointPaths {
 			for _, room := range path {
 				room.Visited = false
 			}
 		}
-		if len(disjointPaths) > len(BestPaths) {
+
+		totalLength := 0
+		for _, path := range disjointPaths {
+			totalLength += len(path)
+		}
+
+		// Calculate score: prioritize number of paths, then total length
+		// Use a weighted formula: score = totalLength + weight * (maxPaths - len(disjointPaths))
+		weight := 8.0 // Adjust this weight as needed
+		score := float64(totalLength) + weight*float64(len(paths)-len(disjointPaths))
+
+		if score < bestScore {
+			bestScore = score
 			BestPaths = disjointPaths
 		}
 	}
+
 	if numAnts == 1 {
 		BestPaths = [][]*Room{FindShortestPath()}
 	}
+
 	return BestPaths
 }
 
