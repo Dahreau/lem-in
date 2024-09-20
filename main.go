@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 )
 
 type Ant struct {
 	Name     string
+	Path     []*Room
 	Location Room
 }
 
@@ -59,7 +61,7 @@ func main() {
 	for _, path := range bestPaths {
 		PrintPath(path)
 	}
-
+	AttributesAntsToPaths(bestPaths)
 }
 
 func PrintRoom(room Room) {
@@ -76,4 +78,57 @@ func PrintPath(Path []*Room) {
 		fmt.Print(room.Name, " -> ")
 	}
 	fmt.Println()
+}
+
+func AttributesAntsToPaths(bestPaths [][]*Room) {
+	antIndex := 0
+	nbOfAntsInPath := make(map[string]int)
+	// Sort paths by length
+	sort.Slice(bestPaths, func(i, j int) bool {
+		return len(bestPaths[i]) < len(bestPaths[j])
+	})
+	for antIndex < AntCount {
+		if len(bestPaths) > 1 {
+			for i := 1; i < len(bestPaths); i++ {
+				if antIndex >= AntCount {
+					break
+				}
+				if len(bestPaths[i-1])+nbOfAntsInPath[PathToStr(bestPaths[i-1])] <= len(bestPaths[i])+nbOfAntsInPath[PathToStr(bestPaths[i])] {
+					Ants[antIndex].Path = bestPaths[i-1]
+					Ants[antIndex].Location = *bestPaths[i-1][0]
+					nbOfAntsInPath[PathToStr(bestPaths[i-1])]++
+					antIndex++
+				} else {
+					Ants[antIndex].Path = bestPaths[i]
+					Ants[antIndex].Location = *bestPaths[i][0]
+					nbOfAntsInPath[PathToStr(bestPaths[i])]++
+					antIndex++
+
+				}
+			}
+		} else {
+			Ants[antIndex].Path = bestPaths[0]
+			Ants[antIndex].Location = *bestPaths[0][0]
+			nbOfAntsInPath[PathToStr(bestPaths[0])]++
+			antIndex++
+		}
+	}
+	for pathStr, nbOfAnts := range nbOfAntsInPath {
+		fmt.Printf("Path: %v, Number of ants: %d\n", pathStr, nbOfAnts)
+	}
+}
+
+func PrintAnt(ant Ant) {
+	fmt.Printf("Ant: %s\n", ant.Name)
+	fmt.Printf("Path: %v\n", ant.Path)
+	fmt.Printf("Location: %v\n", ant.Location)
+	fmt.Println()
+}
+
+func PathToStr(path []*Room) string {
+	str := ""
+	for _, room := range path {
+		str += room.Name + "-"
+	}
+	return str[:len(str)-1]
 }
