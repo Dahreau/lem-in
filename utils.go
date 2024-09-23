@@ -11,7 +11,7 @@ import (
 func ReadFile() string {
 
 	if len(os.Args) != 2 {
-		log.Fatal("Please provide a filename as an argument.")
+		fmt.Println("USAGE : ./lem-in [file]")
 		os.Exit(0)
 	}
 	filename := os.Args[1]
@@ -87,6 +87,6 @@ func DecodeFile(fileContent string) {
 	}
 	startRoom = FindRoomByName(startRoomName)
 	endRoom = FindRoomByName(endRoomName)
-	PrintRoom(*startRoom)
-	PrintRoom(*endRoom)
+	// PrintRoom(*startRoom)
+	// PrintRoom(*endRoom)
 }

@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
-	"sort"
+	"time"
 )
 
 type Ant struct {
@@ -17,10 +16,16 @@ var Ants []Ant
 
 type Room struct {
 	Name    string
-	IsEmpty bool
 	Visited bool
 	Links   []*Room
 }
+type PathStruct struct {
+	Path      []*Room
+	AntsCount int
+	Ants      []Ant
+}
+
+var DisjointPaths []PathStruct
 
 var Rooms []Room
 
@@ -43,7 +48,7 @@ func main() {
 	DecodeFile(fileContent)
 
 	if !IsFileValid() {
-		log.Fatal("Invalid file format.")
+		fmt.Println("ERROR : invalid data format.")
 		os.Exit(0)
 	}
 
@@ -55,13 +60,13 @@ func main() {
 	// for _, room := range Rooms {
 	// 	PrintRoom(room)
 	// }
-
+	timeExec := time.Now()
 	FindAllPaths(startRoom, endRoom)
-	bestPaths := FindBestPaths(Paths, AntCount)
-	for _, path := range bestPaths {
-		PrintPath(path)
-	}
-	AttributesAntsToPaths(bestPaths)
+	FindBestPaths(Paths, AntCount)
+	AttributesAntsToPaths()
+	fmt.Println(fileContent)
+	MoveAnts()
+	fmt.Printf("Execution time : %v\n", time.Since(timeExec))
 }
 
 func PrintRoom(room Room) {
@@ -69,7 +74,6 @@ func PrintRoom(room Room) {
 	fmt.Printf("Room: %s\n", room.Name)
 	fmt.Printf("Links: %v\n", room.Links)
 	fmt.Printf("Visited: %v\n", room.Visited)
-	fmt.Printf("IsEmpty: %v\n", room.IsEmpty)
 	fmt.Println()
 }
 
@@ -78,44 +82,6 @@ func PrintPath(Path []*Room) {
 		fmt.Print(room.Name, " -> ")
 	}
 	fmt.Println()
-}
-
-func AttributesAntsToPaths(bestPaths [][]*Room) {
-	antIndex := 0
-	nbOfAntsInPath := make(map[string]int)
-	// Sort paths by length
-	sort.Slice(bestPaths, func(i, j int) bool {
-		return len(bestPaths[i]) < len(bestPaths[j])
-	})
-	for antIndex < AntCount {
-		if len(bestPaths) > 1 {
-			for i := 1; i < len(bestPaths); i++ {
-				if antIndex >= AntCount {
-					break
-				}
-				if len(bestPaths[i-1])+nbOfAntsInPath[PathToStr(bestPaths[i-1])] <= len(bestPaths[i])+nbOfAntsInPath[PathToStr(bestPaths[i])] {
-					Ants[antIndex].Path = bestPaths[i-1]
-					Ants[antIndex].Location = *bestPaths[i-1][0]
-					nbOfAntsInPath[PathToStr(bestPaths[i-1])]++
-					antIndex++
-				} else {
-					Ants[antIndex].Path = bestPaths[i]
-					Ants[antIndex].Location = *bestPaths[i][0]
-					nbOfAntsInPath[PathToStr(bestPaths[i])]++
-					antIndex++
-
-				}
-			}
-		} else {
-			Ants[antIndex].Path = bestPaths[0]
-			Ants[antIndex].Location = *bestPaths[0][0]
-			nbOfAntsInPath[PathToStr(bestPaths[0])]++
-			antIndex++
-		}
-	}
-	for pathStr, nbOfAnts := range nbOfAntsInPath {
-		fmt.Printf("Path: %v, Number of ants: %d\n", pathStr, nbOfAnts)
-	}
 }
 
 func PrintAnt(ant Ant) {
@@ -132,3 +98,83 @@ func PathToStr(path []*Room) string {
 	}
 	return str[:len(str)-1]
 }
+
+func AttributesAntsToPaths() {
+	antIndex := 0
+	for antIndex < AntCount {
+		minIndex := FindMinAntsInPathIndex(DisjointPaths)
+		Ants[antIndex].Path = DisjointPaths[minIndex].Path
+		Ants[antIndex].Location = *DisjointPaths[minIndex].Path[0]
+		DisjointPaths[minIndex].AntsCount++
+		DisjointPaths[minIndex].Ants = append(DisjointPaths[minIndex].Ants, Ants[antIndex])
+		antIndex++
+	}
+}
+
+func FindMinAntsInPathIndex(disjointPaths []PathStruct) int {
+	minIndex := 0
+	min := len(disjointPaths[0].Path)
+	for i, path := range disjointPaths {
+		if len(path.Path)+path.AntsCount < min+disjointPaths[minIndex].AntsCount {
+			min = len(path.Path)
+			minIndex = i
+		}
+	}
+	return minIndex
+}
+func FindMinLenPathIndex(disjointPaths []PathStruct) int {
+	minIndex := 0
+	min := len(disjointPaths[0].Path)
+	for i, path := range disjointPaths {
+		if len(path.Path) < min {
+			min = len(path.Path)
+			minIndex = i
+		}
+	}
+	return minIndex
+}
+
+func MoveAnts() {
+	nbOfIteration := CalculateNbOfIteration()
+	result := make([]string, nbOfIteration)
+	for _, path := range DisjointPaths {
+		for i := 0; i < path.AntsCount; i++ {
+			j := 0
+			for path.Ants[i].Location.Name != endRoom.Name {
+				if FindLocationIndex(path.Ants[i]) < len(path.Ants[i].Path) {
+					path.Ants[i].Location = *path.Ants[i].Path[FindLocationIndex(path.Ants[i])+1]
+					result[i+j] += path.Ants[i].Name + "-" + path.Ants[i].Location.Name + " "
+				}
+				j++
+			}
+		}
+
+	}
+
+	for _, res := range result {
+		// pause()
+		fmt.Println(res)
+	}
+	fmt.Printf("\nNumber of iteration(s) : %d\n", nbOfIteration)
+}
+func FindLocationIndex(ant Ant) int {
+	for i, room := range ant.Path {
+		if room.Name == ant.Location.Name {
+			return i
+		}
+	}
+	return -1
+}
+func CalculateNbOfIteration() int {
+	MinnbOfIteration := 100000000000000
+	for _, path := range DisjointPaths {
+		if len(path.Path)+path.AntsCount <= MinnbOfIteration {
+			MinnbOfIteration = len(path.Path) - 2 + path.AntsCount
+		}
+	}
+	return MinnbOfIteration
+}
+
+// func pause() {
+// 	fmt.Scan()
+// }

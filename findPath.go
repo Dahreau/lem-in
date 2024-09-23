@@ -39,7 +39,7 @@ func FindAllPaths(start *Room, end *Room) {
 		}
 	}
 	if len(Paths) == 0 {
-		fmt.Println("Invalid data format")
+		fmt.Println("ERROR : invalid data format")
 		os.Exit(0)
 	}
 }
@@ -55,7 +55,7 @@ func isVisited(room *Room, path []*Room) bool {
 }
 
 // I would like a function that returns the best paths (the shortest ones) but the maximum disjoints paths in the list of paths depending on the number of ants that will be sent.
-func FindBestPaths(paths [][]*Room, numAnts int) [][]*Room {
+func FindBestPaths(paths [][]*Room, numAnts int) {
 	BestPaths := [][]*Room{}
 	bestScore := float64(^uint(0) >> 1) // Initialize to max float value
 
@@ -104,16 +104,22 @@ func FindBestPaths(paths [][]*Room, numAnts int) [][]*Room {
 		score := float64(totalLength) + weight*float64(len(paths)-len(disjointPaths))
 
 		if score < bestScore {
+			DisjointPaths = []PathStruct{}
 			bestScore = score
 			BestPaths = disjointPaths
+			for _, path := range BestPaths {
+				newPath := PathStruct{
+					Path: path,
+				}
+				DisjointPaths = append(DisjointPaths, newPath)
+
+			}
 		}
 	}
 
 	if numAnts == 1 {
 		BestPaths = [][]*Room{FindShortestPath()}
 	}
-
-	return BestPaths
 }
 
 // I would like a function that returns the shortest path in the list of paths.

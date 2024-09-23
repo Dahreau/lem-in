@@ -14,7 +14,9 @@ func FindRoomByName(name string) *Room {
 func IsFileValid() bool {
 
 	seen := make(map[string]bool)
-
+	if AntCount < 1 {
+		return false
+	}
 	// Verifies that Rooms are unique
 	for _, room := range Rooms {
 		if seen[room.Name] {
